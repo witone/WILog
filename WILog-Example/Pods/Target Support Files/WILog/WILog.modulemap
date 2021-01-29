@@ -1,0 +1,6 @@
+framework module WILog {
+  umbrella header "WILog-umbrella.h"
+
+  export *
+  module * { export * }
+}

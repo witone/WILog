@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '9.0'
+
+target 'WILog_Example' do
+  pod 'WILog', :path => '../'
+
+  target 'WILog_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
