@@ -41,7 +41,11 @@ static const int ddLogLevel = DDLogFlagInfo;// 定义日志级别
 #if __has_include(<CocoaLumberjack/CocoaLumberjack.h>)
     //[DDLog addLogger:[DDASLLogger sharedInstance]];//打印到系统
 #if DEBUG
-    [DDLog addLogger:[DDTTYLogger sharedInstance]];//打印到xcode
+    if (@available(iOS 10.0, *)){
+        [DDLog addLogger:[DDOSLogger sharedInstance]];
+    }else {
+        [DDLog addLogger:[DDTTYLogger sharedInstance]];//打印到xcode
+    }
 #endif
 
     DDFileLogger *fileLogger;
@@ -52,7 +56,7 @@ static const int ddLogLevel = DDLogFlagInfo;// 定义日志级别
     }
     
     fileLogger.rollingFrequency = 60 * 60 * 24; // 24 hour rolling
-    fileLogger.logFileManager.maximumNumberOfLogFiles = 3;
+    fileLogger.logFileManager.maximumNumberOfLogFiles = 5;
     fileLogger.maximumFileSize = 1024 *1024;
     WILogInnerDebug(@"Log Path:%@",fileLogger.currentLogFileInfo.description);
 
