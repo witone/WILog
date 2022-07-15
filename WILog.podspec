@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'WILog'
-  s.version          = '0.1.1'
+  s.version          = '0.2.1'
   s.summary          = '基于CocoaLumberjack的日志记录控件'
 
 # This description is used to generate tags and improve search results.

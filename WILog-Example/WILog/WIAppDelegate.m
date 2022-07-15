@@ -7,12 +7,23 @@
 //
 
 #import "WIAppDelegate.h"
+#import <WILog/WILog.h>
 
 @implementation WIAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
+    [WILog initLog:WILogLevelInfo withPath:nil];
+
+    WILogError(@"WILog",@"测试error");
+    WILogDebug(@"WILog", @"测试debug");
+    WILogInfo(@"WILog", @"测试info");
+    
+    WILogTagError(@"WILog", @"测试tag", @"12345-%@",@"ceshi");
+    WILogTagDebug(@"WILog", @"测试tag", @"12345-%@",@"ceshi");
+    WILogTagInfo(@"WILog", @"测试tag", @"12345-%@",@"ceshi");
+    
     return YES;
 }
 

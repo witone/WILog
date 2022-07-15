@@ -1,25 +1,20 @@
 //
-//  WILogUtils.m
+//  WILog.m
 //  WILog
 //
-//  Created by zyp on 01/29/2021.
-//  Copyright (c) 2021 zyp. All rights reserved.
+//  Created by BestWeather on 2022/7/15.
 //
 
-#import "WILogUtils.h"
+#import "WILog.h"
+
+static int ddLogLevel = 0;// 定义日志级别
 
 #if __has_include(<CocoaLumberjack/CocoaLumberjack.h>)
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
-#if DEBUG
-static const int ddLogLevel = DDLogLevelVerbose;// 定义日志级别
-#else
-static const int ddLogLevel = DDLogFlagInfo;// 定义日志级别
-#endif
-
-#define WILogInnerError(frmt, ...)   LOG_MAYBE(NO,                LOG_LEVEL_DEF, DDLogFlagError,   0, nil, __PRETTY_FUNCTION__, frmt, ##__VA_ARGS__)
-#define WILogInnerInfo(frmt, ...)    LOG_MAYBE(LOG_ASYNC_ENABLED, LOG_LEVEL_DEF, DDLogFlagInfo,    0, nil, __PRETTY_FUNCTION__, frmt, ##__VA_ARGS__)
-#define WILogInnerDebug(frmt, ...)   LOG_MAYBE(LOG_ASYNC_ENABLED, LOG_LEVEL_DEF, DDLogFlagDebug,   0, nil, __PRETTY_FUNCTION__, frmt, ##__VA_ARGS__)
+#define WILogInnerError(frmt, ...)   DDLogError(frmt, ##__VA_ARGS__)
+#define WILogInnerInfo(frmt, ...)    DDLogInfo(frmt, ##__VA_ARGS__)
+#define WILogInnerDebug(frmt, ...)   DDLogDebug(frmt, ##__VA_ARGS__)
 
 #else
 
@@ -35,9 +30,19 @@ static const int ddLogLevel = DDLogFlagInfo;// 定义日志级别
 
 #endif
 
-@implementation WILogUtils
+#define WILogInner(sdk,level,frmt, ...)                                         \
+        switch (level) {                                                        \
+            case WILogLevelError:                                               \
+                WILogInnerError((@"[%@][e]" frmt),sdk, ##__VA_ARGS__);break;    \
+            case WILogLevelInfo:                                                \
+                WILogInnerInfo((@"[%@][i]" frmt),sdk, ##__VA_ARGS__);break;     \
+            default:                                                            \
+                WILogInnerDebug((@"[%@][d]" frmt),sdk, ##__VA_ARGS__);break;    \
+        }
 
-+ (void)initLogWithPath:(nullable NSString *)logPath {
+@implementation WILog
+
++(void)initLog:(WILogLevel)level withPath:(nullable NSString *)logPath {
 #if __has_include(<CocoaLumberjack/CocoaLumberjack.h>)
     //[DDLog addLogger:[DDASLLogger sharedInstance]];//打印到系统
 #if DEBUG
@@ -47,6 +52,17 @@ static const int ddLogLevel = DDLogFlagInfo;// 定义日志级别
         [DDLog addLogger:[DDTTYLogger sharedInstance]];//打印到xcode
     }
 #endif
+    switch (level) {
+        case WILogLevelError:
+            ddLogLevel = DDLogLevelError;
+            break;
+        case WILogLevelInfo:
+            ddLogLevel = DDLogLevelInfo;
+            break;
+        default:
+            ddLogLevel = DDLogLevelVerbose;
+            break;
+    }
 
     DDFileLogger *fileLogger;
     if (logPath && logPath.length>0) {
@@ -72,28 +88,20 @@ static const int ddLogLevel = DDLogFlagInfo;// 定义日志级别
     WILogInnerError(@"[Exception]Reason:%@\nName: %@\nStack: %@",e.name,e.reason,e.callStackSymbols.description);
 }
 
-+(void)logError:(NSString *)sdkName tag:(NSString *)tag message:(NSString *)msg {
-    WILogInnerError(@"[%@][error][%@] %@",sdkName,tag, msg);
++(void)log:(WILogLevel)level sdkName:(NSString *)sdkName tag:(NSString *)tag message:(NSString *)msg, ... {
+    va_list args;
+    va_start(args, msg);
+    NSString *message = [[NSString alloc] initWithFormat:msg arguments:args];
+    va_end(args);
+    WILogInner(sdkName, level, @"[%@] %@",tag,message);
 }
 
-+(void)logInfo:(NSString *)sdkName tag:(NSString *)tag message:(NSString *)msg {
-    WILogInnerInfo(@"[%@][info][%@] %@",sdkName,tag, msg);
-}
-
-+(void)logDebug:(NSString *)sdkName tag:(NSString *)tag message:(NSString *)msg {
-    WILogInnerDebug(@"[%@][debug][%@] %@",sdkName,tag, msg);
-}
-
-+(void)logError:(NSString *)sdkName class:(NSString *)className method:(NSString *)methodName message:(NSString *)msg {
-    WILogInnerError(@"[%@][error][%@][%@] %@",sdkName,className,methodName, msg);
-}
-
-+(void)logInfo:(NSString *)sdkName class:(NSString *)className method:(NSString *)methodName message:(NSString *)msg {
-    WILogInnerInfo(@"[%@][info][%@][%@] %@",sdkName,className,methodName, msg);
-}
-
-+(void)logDebug:(NSString *)sdkName class:(NSString *)className method:(NSString *)methodName message:(NSString *)msg {
-    WILogInnerDebug(@"[%@][debug][%@][%@] %@",sdkName,className,methodName, msg);
++(void)log:(WILogLevel)level sdkName:(NSString *)sdkName className:(NSString *)className methodName:(NSString *)methodName message:(NSString *)msg, ... {
+    va_list args;
+    va_start(args, msg);
+    NSString *message = [[NSString alloc] initWithFormat:msg arguments:args];
+    va_end(args);
+    WILogInner(sdkName, level, @"[%@][%@] %@",className,methodName, message);
 }
 
 //会拦截友盟crash上报，暂时不用该逻辑
