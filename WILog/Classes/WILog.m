@@ -30,14 +30,14 @@ static int ddLogLevel = 0;// 定义日志级别
 
 #endif
 
-#define WILogInner(sdk,level,frmt, ...)                                         \
-        switch (level) {                                                        \
-            case WILogLevelError:                                               \
-                WILogInnerError((@"[%@][e]" frmt),sdk, ##__VA_ARGS__);break;    \
-            case WILogLevelInfo:                                                \
-                WILogInnerInfo((@"[%@][i]" frmt),sdk, ##__VA_ARGS__);break;     \
-            default:                                                            \
-                WILogInnerDebug((@"[%@][d]" frmt),sdk, ##__VA_ARGS__);break;    \
+#define WILogInner(sdk,level,frmt, ...)                                                 \
+        switch (level) {                                                                \
+            case WILogLevelError:                                                       \
+                WILogInnerError((@"[%@][error]" frmt),sdk, ##__VA_ARGS__);break;        \
+            case WILogLevelInfo:                                                        \
+                WILogInnerInfo((@"[%@][info]" frmt),sdk, ##__VA_ARGS__);break;          \
+            default:                                                                    \
+                WILogInnerDebug((@"[%@][debug]" frmt),sdk, ##__VA_ARGS__);break;        \
         }
 
 @implementation WILog
