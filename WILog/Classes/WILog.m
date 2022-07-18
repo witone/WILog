@@ -42,16 +42,20 @@ static int ddLogLevel = 0;// 定义日志级别
 
 @implementation WILog
 
-+(void)initLog:(WILogLevel)level withPath:(nullable NSString *)logPath {
++(void)showInXcode {
 #if __has_include(<CocoaLumberjack/CocoaLumberjack.h>)
     //[DDLog addLogger:[DDASLLogger sharedInstance]];//打印到系统
-#if DEBUG
     if (@available(iOS 10.0, *)){
         [DDLog addLogger:[DDOSLogger sharedInstance]];
     }else {
         [DDLog addLogger:[DDTTYLogger sharedInstance]];//打印到xcode
     }
 #endif
+}
+
++(void)initLog:(WILogLevel)level withPath:(nullable NSString *)logPath {
+#if __has_include(<CocoaLumberjack/CocoaLumberjack.h>)
+
     switch (level) {
         case WILogLevelError:
             ddLogLevel = DDLogLevelError;
@@ -74,11 +78,10 @@ static int ddLogLevel = 0;// 定义日志级别
     fileLogger.rollingFrequency = 60 * 60 * 24; // 24 hour rolling
     fileLogger.logFileManager.maximumNumberOfLogFiles = 5;
     fileLogger.maximumFileSize = 1024 *1024;
-    WILogInnerDebug(@"Log Path:%@",fileLogger.currentLogFileInfo.description);
-
     [DDLog addLogger:fileLogger];
+    WILogInnerDebug(@"Base CocoaLumberjack Log Path:%@",fileLogger.currentLogFileInfo.description);
 #else
-    WILogInnerDebug(@"not use CocoaLumberjack Log");
+    WILogInnerDebug(@"Base NSLog");
 #endif
     //添加crash采集
     //NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);

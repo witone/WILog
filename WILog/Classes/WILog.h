@@ -27,6 +27,7 @@ typedef NS_ENUM(NSUInteger, WILogLevel) {
 
 @interface WILog : NSObject
 
++(void)showInXcode;
 +(void)initLog:(WILogLevel)level withPath:(nullable NSString *)logPath;
 
 +(void)exceptionLog:(NSException *)e;
