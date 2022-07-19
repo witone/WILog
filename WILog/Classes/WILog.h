@@ -11,13 +11,17 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-#define WILogError(sdk, msg, ...) [WILog log:WILogLevelError sdkName:sdk className:NSStringFromClass(self.class) methodName:NSStringFromSelector(_cmd) message:(msg), ##__VA_ARGS__];
-#define WILogInfo(sdk, msg, ...)  [WILog log:WILogLevelInfo sdkName:sdk className:NSStringFromClass(self.class) methodName:NSStringFromSelector(_cmd) message:(msg), ##__VA_ARGS__];
-#define WILogDebug(sdk, msg, ...) [WILog log:WILogLevelDebug sdkName:sdk className:NSStringFromClass(self.class) methodName:NSStringFromSelector(_cmd) message:(msg), ##__VA_ARGS__];
+#define WILogError(fmt, ...)            [WILog log:WILogLevelError format:(fmt), ##__VA_ARGS__];
+#define WILogInfo(fmt, ...)             [WILog log:WILogLevelInfo format:(fmt), ##__VA_ARGS__];
+#define WILogDebug(fmt, ...)            [WILog log:WILogLevelDebug format:(fmt), ##__VA_ARGS__];
 
-#define WILogTagError(sdk, t, msg, ...) [WILog log:WILogLevelError sdkName:sdk tag:t message:(msg), ##__VA_ARGS__];
-#define WILogTagInfo(sdk, t, msg, ...)  [WILog log:WILogLevelInfo sdkName:sdk tag:t message:(msg), ##__VA_ARGS__];
-#define WILogTagDebug(sdk, t, msg, ...) [WILog log:WILogLevelDebug sdkName:sdk tag:t message:(msg), ##__VA_ARGS__];
+#define WILogExError(fmt, ...)          [WILog log:WILogLevelError format:(@"[%@][%@]" fmt),NSStringFromClass(self.class),NSStringFromSelector(_cmd), ##__VA_ARGS__];
+#define WILogExInfo(fmt, ...)           [WILog log:WILogLevelInfo format:(@"[%@][%@]" fmt),NSStringFromClass(self.class),NSStringFromSelector(_cmd), ##__VA_ARGS__];
+#define WILogExDebug(fmt, ...)          [WILog log:WILogLevelDebug format:(@"[%@][%@]" fmt),NSStringFromClass(self.class),NSStringFromSelector(_cmd), ##__VA_ARGS__];
+
+#define WILogTagError(tag, fmt, ...)    [WILog log:WILogLevelError format:(@"[%@]" fmt),tag, ##__VA_ARGS__];
+#define WILogTagInfo(tag, fmt, ...)     [WILog log:WILogLevelInfo format:(@"[%@]" fmt),tag, ##__VA_ARGS__];
+#define WILogTagDebug(tag, fmt, ...)    [WILog log:WILogLevelDebug format:(@"[%@]" fmt),tag, ##__VA_ARGS__];
 
 typedef NS_ENUM(NSUInteger, WILogLevel) {
     WILogLevelDebug           = 0,//debug
@@ -25,16 +29,26 @@ typedef NS_ENUM(NSUInteger, WILogLevel) {
     WILogLevelError           = 2,//error
 };
 
+typedef NS_OPTIONS(NSUInteger, WILogType){
+    WILogTypeNone             = (1 << 0),//0...00001 不打印日志
+    WILogTypeDefault          = (1 << 1),//0...00010 NSLog日志输出
+    WILogTypeFile             = (1 << 2),//0...00100 File文件输出
+};
+
 @interface WILog : NSObject
 
-+(void)showInXcode;
-+(void)initLog:(WILogLevel)level withPath:(nullable NSString *)logPath;
+//默认WILog
++(void)setPrefixName:(NSString *)prefixName;
+//默认全类型输出
++(void)setLogLevel:(WILogLevel)logLevel;
+//默认WILogTypeDefault
++(void)setLogType:(WILogType)logType;
+
++(void)initLog:(WILogLevel)level withType:(WILogType)type withDir:(nullable NSString *)logDir;
 
 +(void)exceptionLog:(NSException *)e;
 
-+(void)log:(WILogLevel)level sdkName:(NSString *)sdkName tag:(NSString *)tag message:(NSString *)msg, ... NS_FORMAT_FUNCTION(4,5);
-
-+(void)log:(WILogLevel)level sdkName:(NSString *)sdkName className:(NSString *)className methodName:(NSString *)methodName message:(NSString *)msg, ... NS_FORMAT_FUNCTION(5,6);
++(void)log:(WILogLevel)level format:(NSString *)format, ... NS_FORMAT_FUNCTION(2,3);
 
 @end
 

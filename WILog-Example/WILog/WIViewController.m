@@ -7,6 +7,7 @@
 //
 
 #import "WIViewController.h"
+#import <WILog/WILog.h>
 
 @interface WIViewController ()
 
@@ -18,12 +19,14 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-}
-
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+    for (int i = 0; i<100; i++) {
+        WILogDebug(@"测试日志打印=%d",i);
+    }
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        for (int i = 0; i<100; i++) {
+            WILogDebug(@"测试queue=%d",i);
+        }
+    });
 }
 
 @end

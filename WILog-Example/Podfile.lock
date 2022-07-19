@@ -1,25 +1,30 @@
 PODS:
-  - CocoaLumberjack (3.7.0):
-    - CocoaLumberjack/Core (= 3.7.0)
-  - CocoaLumberjack/Core (3.7.0)
-  - WILog (0.2.1):
-    - CocoaLumberjack
+  - WIKit (0.2.5):
+    - WIKit/WICore (= 0.2.5)
+    - WIUtility
+  - WIKit/WICore (0.2.5):
+    - WIUtility
+  - WILog (1.0.0)
+  - WIUtility (0.1.9)
 
 DEPENDENCIES:
+  - WIKit
   - WILog (from `../`)
 
 SPEC REPOS:
   trunk:
-    - CocoaLumberjack
+    - WIKit
+    - WIUtility
 
 EXTERNAL SOURCES:
   WILog:
     :path: "../"
 
 SPEC CHECKSUMS:
-  CocoaLumberjack: e8955b9d337ac307103b0a34fd141c32f27e53c5
-  WILog: 3f7608fecb95dcb2652654b868a824db2c242ae8
+  WIKit: 472d236a3fe0796fecebc4c02a5b046ac7072ca1
+  WILog: e887b714c06af959819d3725b9eaea458236c738
+  WIUtility: c08b91aa085b8f7568cfb71ff93e0bae9eb34769
 
-PODFILE CHECKSUM: e5cb9a71ce9049e9e5e98a51f8472c416d960d97
+PODFILE CHECKSUM: 72d65b47c2bd162d31e50336803fb6cf4b634b92
 
 COCOAPODS: 1.11.3

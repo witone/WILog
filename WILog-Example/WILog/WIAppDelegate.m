@@ -11,18 +11,17 @@
 
 @implementation WIAppDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-    // Override point for customization after application launch.
-    [WILog initLog:WILogLevelInfo withPath:nil];
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    [WILog initLog:WILogLevelDebug withType:WILogTypeFile|WILogTypeDefault withDir:nil];
+    [WILog setPrefixName:@"WI"];
+    WILogDebug(@"test=%@",@"2375468658");
+    WILogExError(@"SDKError0-%@",@"测试error");
+    WILogExDebug(@"WILogSDKDebug-%@",@"hahahahha");
+    WILogExInfo(@"测试info");
 
-    WILogError(@"WILog",@"测试error");
-    WILogDebug(@"WILog", @"测试debug");
-    WILogInfo(@"WILog", @"测试info");
-    
-    WILogTagError(@"WILog", @"测试tag", @"12345-%@",@"ceshi");
-    WILogTagDebug(@"WILog", @"测试tag", @"12345-%@",@"ceshi");
-    WILogTagInfo(@"WILog", @"测试tag", @"12345-%@",@"ceshi");
+    WILogTagError(@"测试tag", @"12345-%@",@"ceshi");
+    WILogTagDebug(@"测试tag", @"12345-%@",@"ceshi");
+    WILogTagInfo( @"测试tag", @"12345-%@",@"ceshi");
     
     return YES;
 }

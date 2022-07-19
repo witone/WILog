@@ -7,119 +7,128 @@
 
 #import "WILog.h"
 
-static int ddLogLevel = 0;// 定义日志级别
+// 定义日志级别
+static NSString *wiPrefixName = @"WILog";
+static WILogLevel wiLogLevel = WILogLevelDebug;
+static WILogType wiLogType = WILogTypeDefault;
 
-#if __has_include(<CocoaLumberjack/CocoaLumberjack.h>)
-#import <CocoaLumberjack/CocoaLumberjack.h>
+//log文件路径
+#define wiLogDefaultDir [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingString:@"/log/"];
+static NSString *wiLogFilePath = nil;
+//log目录路径
+static NSString *wiLogDir = nil;
 
-#define WILogInnerError(frmt, ...)   DDLogError(frmt, ##__VA_ARGS__)
-#define WILogInnerInfo(frmt, ...)    DDLogInfo(frmt, ##__VA_ARGS__)
-#define WILogInnerDebug(frmt, ...)   DDLogDebug(frmt, ##__VA_ARGS__)
-
-#else
-
-#if DEBUG
-#define WILogInnerError(frmt, ...)   NSLog(frmt, ##__VA_ARGS__)
-#define WILogInnerInfo(frmt, ...)    NSLog(frmt, ##__VA_ARGS__)
-#define WILogInnerDebug(frmt, ...)   NSLog(frmt, ##__VA_ARGS__)
-#else
-#define WILogInnerError(frmt, ...)
-#define WILogInnerInfo(frmt, ...)
-#define WILogInnerDebug(frmt, ...)
-#endif
-
-#endif
-
-#define WILogInner(sdk,level,frmt, ...)                                                 \
-        switch (level) {                                                                \
-            case WILogLevelError:                                                       \
-                WILogInnerError((@"[%@][error]" frmt),sdk, ##__VA_ARGS__);break;        \
-            case WILogLevelInfo:                                                        \
-                WILogInnerInfo((@"[%@][info]" frmt),sdk, ##__VA_ARGS__);break;          \
-            default:                                                                    \
-                WILogInnerDebug((@"[%@][debug]" frmt),sdk, ##__VA_ARGS__);break;        \
-        }
+#define WIInnerLog(level, fmt, ...)   [WILog log:level format:(fmt), ##__VA_ARGS__];
 
 @implementation WILog
 
-+(void)showInXcode {
-#if __has_include(<CocoaLumberjack/CocoaLumberjack.h>)
-    //[DDLog addLogger:[DDASLLogger sharedInstance]];//打印到系统
-    if (@available(iOS 10.0, *)){
-        [DDLog addLogger:[DDOSLogger sharedInstance]];
-    }else {
-        [DDLog addLogger:[DDTTYLogger sharedInstance]];//打印到xcode
-    }
-#endif
++(void)setPrefixName:(NSString *)prefixName {
+    wiPrefixName = prefixName;
 }
 
-+(void)initLog:(WILogLevel)level withPath:(nullable NSString *)logPath {
-#if __has_include(<CocoaLumberjack/CocoaLumberjack.h>)
++(void)setLogLevel:(WILogLevel)logLevel {
+    wiLogLevel = logLevel;
+}
 
-    switch (level) {
-        case WILogLevelError:
-            ddLogLevel = DDLogLevelError;
-            break;
-        case WILogLevelInfo:
-            ddLogLevel = DDLogLevelInfo;
-            break;
-        default:
-            ddLogLevel = DDLogLevelVerbose;
-            break;
-    }
++(void)setLogType:(WILogType)logType {
+    wiLogType = logType;
+}
 
-    DDFileLogger *fileLogger;
-    if (logPath && logPath.length>0) {
-        fileLogger = [[DDFileLogger alloc] initWithLogFileManager:[[DDLogFileManagerDefault alloc]initWithLogsDirectory:logPath]];
++(void)setLogDirectory:(NSString *)logDirectory {
+    wiLogDir = logDirectory;
+}
+
++(NSString *)logDirectory {
+    if (wiLogDir && wiLogDir.length>0) return wiLogDir;
+    return wiLogDefaultDir;
+}
+
++(void)initLog:(WILogLevel)level withType:(WILogType)type withDir:(nullable NSString *)logDir {
+    wiLogLevel = level;
+    wiLogType = type;
+
+    
+    if (logDir && logDir.length>0) {
+        wiLogDir = logDir;
     }else {
-        fileLogger = [[DDFileLogger alloc] init];
+        wiLogDir = wiLogDefaultDir;
     }
     
-    fileLogger.rollingFrequency = 60 * 60 * 24; // 24 hour rolling
-    fileLogger.logFileManager.maximumNumberOfLogFiles = 5;
-    fileLogger.maximumFileSize = 1024 *1024;
-    [DDLog addLogger:fileLogger];
-    WILogInnerDebug(@"Base CocoaLumberjack Log Path:%@",fileLogger.currentLogFileInfo.description);
-#else
-    WILogInnerDebug(@"Base NSLog");
+    if (!wiLogFilePath) {
+        NSString *fileName = [NSString stringWithFormat:@"wiLog.log"];
+        NSString *filePath = [wiLogDir stringByAppendingPathComponent:fileName];
+        
+        wiLogFilePath = filePath;
+#if DEBUG
+        NSLog(@"LogPath: %@", wiLogFilePath);
 #endif
-    //添加crash采集
-    //NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
+        //创建log文件
+        if([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+            //NSString *initString = @"log初始化。。。\n";
+            //[initString writeToFile:filePath atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        } else {
+            [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
+        }
+    }
 }
 
 +(void)exceptionLog:(NSException *)e {
-    WILogInnerError(@"[Exception]Reason:%@\nName: %@\nStack: %@",e.name,e.reason,e.callStackSymbols.description);
+    WIInnerLog(WILogLevelError,@"[Exception]Reason:%@\nName: %@\nStack: %@",e.name,e.reason,e.callStackSymbols.description);
 }
 
-+(void)log:(WILogLevel)level sdkName:(NSString *)sdkName tag:(NSString *)tag message:(NSString *)msg, ... {
++(void)log:(WILogLevel)level format:(NSString *)format, ... {
     va_list args;
-    va_start(args, msg);
-    NSString *message = [[NSString alloc] initWithFormat:msg arguments:args];
+    va_start(args, format);
+    [self log:level format:format vaList:args];
     va_end(args);
-    WILogInner(sdkName, level, @"[%@] %@",tag,message);
 }
 
-+(void)log:(WILogLevel)level sdkName:(NSString *)sdkName className:(NSString *)className methodName:(NSString *)methodName message:(NSString *)msg, ... {
-    va_list args;
-    va_start(args, msg);
-    NSString *message = [[NSString alloc] initWithFormat:msg arguments:args];
-    va_end(args);
-    WILogInner(sdkName, level, @"[%@][%@] %@",className,methodName, message);
++ (void)log:(WILogLevel)level format:(NSString *)format vaList:(va_list)args {
+    if (level >= wiLogLevel) {
+        NSString *logLevelStr = @"";
+        switch (level) {
+            case WILogLevelDebug: logLevelStr = @"DEBUG";  break;
+            case WILogLevelInfo:  logLevelStr = @"INFO ";  break;
+            case WILogLevelError: logLevelStr = @"ERROR";  break;
+            default: logLevelStr = @"DEBUG";  break;
+        }
+        NSString *formatTmp = [NSString stringWithFormat:@"[%@]%@",logLevelStr,format];
+        if (wiPrefixName && wiPrefixName.length) formatTmp = [[NSString stringWithFormat:@"[%@]",wiPrefixName] stringByAppendingString:formatTmp];
+        NSString *message = [[NSString alloc] initWithFormat:formatTmp arguments:args];
+        if (wiLogType & WILogTypeDefault) NSLog(@"%@",message);
+        if (wiLogType & WILogTypeFile) {
+            dispatch_async([self.class wi_operationQueue], ^{//异步串行队列
+                NSString *logMessage = [NSString stringWithFormat:@"%@ %@\n", [[self.class dateFormatter] stringFromDate:[NSDate date]],message];
+                //使用NSFileHandle来写入数据
+                NSFileHandle *file = [NSFileHandle fileHandleForUpdatingAtPath:wiLogFilePath];
+                [file seekToEndOfFile];
+                [file writeData:[logMessage dataUsingEncoding:NSUTF8StringEncoding]];
+                [file closeFile];
+            });
+        }
+    }
 }
 
-//会拦截友盟crash上报，暂时不用该逻辑
-void uncaughtExceptionHandler(NSException *exception) {
-    NSString *reason = [exception reason];//出现异常的原因
-    NSString *name = [exception name];//异常名称
-    NSArray *stackArray = [exception callStackSymbols];//异常的堆栈信息
-    NSString *exceptionInfo = [NSString stringWithFormat:@"Exceptionreason：%@\nExceptionname：%@\nExceptionstack：%@",name,reason,stackArray];
-    NSLog(@"[CrashInfo]%@",exceptionInfo);
-    
-    NSMutableArray* tmpArr=[NSMutableArray arrayWithArray:stackArray];
-    [tmpArr insertObject:reason atIndex:0];
-    
-    //保存到本地--当然你可以在下次启动的时候，上传这个log
-    [exceptionInfo writeToFile:[NSString stringWithFormat:@"%@/Documents/error.log",NSHomeDirectory()] atomically:YES encoding:NSUTF8StringEncoding error:nil];
++(dispatch_queue_t)wi_operationQueue {
+    static dispatch_queue_t wi_operationQueue;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        wi_operationQueue =  dispatch_queue_create("com.wilog.sdk.operationqueue", DISPATCH_QUEUE_SERIAL);
+    });
+    return wi_operationQueue;
+}
+
++ (NSDateFormatter *)dateFormatter {
+    static NSDateFormatter *dateFormatter;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        if(!dateFormatter){
+            dateFormatter = [NSDateFormatter new];
+            dateFormatter.timeZone = [NSTimeZone timeZoneWithName:@"Asia/Shanghai"];
+            dateFormatter.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
+        }
+    });
+    return dateFormatter;
 }
 
 @end
