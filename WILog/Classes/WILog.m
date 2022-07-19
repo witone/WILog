@@ -2,7 +2,7 @@
 //  WILog.m
 //  WILog
 //
-//  Created by BestWeather on 2022/7/15.
+//  Created by zyp on 2022/7/15.
 //
 
 #import "WILog.h"
@@ -55,6 +55,11 @@ static NSString *wiLogDir = nil;
     }
     
     if (!wiLogFilePath) {
+        //创建log文件夹
+        if (![[NSFileManager defaultManager] fileExistsAtPath:wiLogDir]) {
+            [[NSFileManager defaultManager] createDirectoryAtPath:wiLogDir withIntermediateDirectories:YES attributes:nil error:nil];
+        }
+
         NSString *fileName = [NSString stringWithFormat:@"wiLog.log"];
         NSString *filePath = [wiLogDir stringByAppendingPathComponent:fileName];
         
@@ -63,11 +68,9 @@ static NSString *wiLogDir = nil;
         NSLog(@"LogPath: %@", wiLogFilePath);
 #endif
         //创建log文件
-        if([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-            //NSString *initString = @"log初始化。。。\n";
-            //[initString writeToFile:filePath atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        } else {
-            [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
+        if(![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+            BOOL result = [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
+            if (!result) NSLog(@"创建日志文件失败");
         }
     }
 }
@@ -87,10 +90,10 @@ static NSString *wiLogDir = nil;
     if (level >= wiLogLevel) {
         NSString *logLevelStr = @"";
         switch (level) {
-            case WILogLevelDebug: logLevelStr = @"DEBUG";  break;
-            case WILogLevelInfo:  logLevelStr = @"INFO ";  break;
-            case WILogLevelError: logLevelStr = @"ERROR";  break;
-            default: logLevelStr = @"DEBUG";  break;
+            case WILogLevelDebug: logLevelStr = @"debug";  break;
+            case WILogLevelInfo:  logLevelStr = @"info";   break;
+            case WILogLevelError: logLevelStr = @"error";  break;
+            default: logLevelStr = @"debug";  break;
         }
         NSString *formatTmp = [NSString stringWithFormat:@"[%@]%@",logLevelStr,format];
         if (wiPrefixName && wiPrefixName.length) formatTmp = [[NSString stringWithFormat:@"[%@]",wiPrefixName] stringByAppendingString:formatTmp];

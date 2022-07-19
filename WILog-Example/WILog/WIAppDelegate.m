@@ -8,6 +8,7 @@
 
 #import "WIAppDelegate.h"
 #import <WILog/WILog.h>
+#import <DoraemonKit/DoraemonManager.h>//正式版需删除
 
 @implementation WIAppDelegate
 
@@ -22,7 +23,7 @@
     WILogTagError(@"测试tag", @"12345-%@",@"ceshi");
     WILogTagDebug(@"测试tag", @"12345-%@",@"ceshi");
     WILogTagInfo( @"测试tag", @"12345-%@",@"ceshi");
-    
+    [[DoraemonManager shareInstance] install];
     return YES;
 }
 

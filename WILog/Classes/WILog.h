@@ -2,7 +2,7 @@
 //  WILog.h
 //  WILog
 //
-//  Created by BestWeather on 2022/7/15.
+//  Created by zyp on 2022/7/15.
 //
 
 #import <Foundation/NSObject.h>
