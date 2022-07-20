@@ -71,6 +71,8 @@ static NSString *wiLogDir = nil;
         if(![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
             BOOL result = [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
             if (!result) NSLog(@"创建日志文件失败");
+        }else {
+            if (wiLogType & WILogTypeFile) [self writeToFile:@"\n\n\n" showTime:NO];
         }
     }
 }
@@ -99,17 +101,19 @@ static NSString *wiLogDir = nil;
         if (wiPrefixName && wiPrefixName.length) formatTmp = [[NSString stringWithFormat:@"[%@]",wiPrefixName] stringByAppendingString:formatTmp];
         NSString *message = [[NSString alloc] initWithFormat:formatTmp arguments:args];
         if (wiLogType & WILogTypeDefault) NSLog(@"%@",message);
-        if (wiLogType & WILogTypeFile) {
-            dispatch_async([self.class wi_operationQueue], ^{//异步串行队列
-                NSString *logMessage = [NSString stringWithFormat:@"%@ %@\n", [[self.class dateFormatter] stringFromDate:[NSDate date]],message];
-                //使用NSFileHandle来写入数据
-                NSFileHandle *file = [NSFileHandle fileHandleForUpdatingAtPath:wiLogFilePath];
-                [file seekToEndOfFile];
-                [file writeData:[logMessage dataUsingEncoding:NSUTF8StringEncoding]];
-                [file closeFile];
-            });
-        }
+        if (wiLogType & WILogTypeFile) [self writeToFile:message showTime:YES];
     }
+}
+
++(void)writeToFile:(NSString *)logMessage showTime:(BOOL)showTime {//使用NSFileHandle来写入数据
+    dispatch_async([self.class wi_operationQueue], ^{//异步串行队列
+        NSString *logMessageTmp = logMessage;
+        if (showTime) logMessageTmp = [NSString stringWithFormat:@"%@ %@\n", [[self.class dateFormatter] stringFromDate:[NSDate date]],logMessage];
+        NSFileHandle *file = [NSFileHandle fileHandleForUpdatingAtPath:wiLogFilePath];
+        [file seekToEndOfFile];
+        [file writeData:[logMessageTmp dataUsingEncoding:NSUTF8StringEncoding]];
+        [file closeFile];
+    });
 }
 
 +(dispatch_queue_t)wi_operationQueue {
