@@ -72,7 +72,7 @@ static NSString *wiLogDir = nil;
             BOOL result = [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
             if (!result) NSLog(@"创建日志文件失败");
         }else {
-            if (wiLogType & WILogTypeFile) [self writeToFile:@"\n\n\n" showTime:NO];
+            if (wiLogType & WILogTypeFile) [self writeToFile:@"\n\n\n"];
         }
     }
 }
@@ -84,11 +84,18 @@ static NSString *wiLogDir = nil;
 +(void)log:(WILogLevel)level format:(NSString *)format, ... {
     va_list args;
     va_start(args, format);
-    [self log:level format:format vaList:args];
+    [self log:level prefix:wiPrefixName format:format vaList:args];
     va_end(args);
 }
 
-+ (void)log:(WILogLevel)level format:(NSString *)format vaList:(va_list)args {
++(void)log:(WILogLevel)level prefix:(NSString *)prefix format:(NSString *)format, ... {
+    va_list args;
+    va_start(args, format);
+    [self log:level prefix:prefix format:format vaList:args];
+    va_end(args);
+}
+
++ (void)log:(WILogLevel)level prefix:(NSString *)prefix format:(NSString *)format vaList:(va_list)args {
     if (level >= wiLogLevel) {
         NSString *logLevelStr = @"";
         switch (level) {
@@ -97,21 +104,24 @@ static NSString *wiLogDir = nil;
             case WILogLevelError: logLevelStr = @"error";  break;
             default: logLevelStr = @"debug";  break;
         }
-        NSString *formatTmp = [NSString stringWithFormat:@"[%@]%@",logLevelStr,format];
-        if (wiPrefixName && wiPrefixName.length) formatTmp = [[NSString stringWithFormat:@"[%@]",wiPrefixName] stringByAppendingString:formatTmp];
+        NSString *formatTmp;
+        NSString *timeStr = [[self dateFormatter] stringFromDate:[NSDate date]];
+        if (prefix && prefix.length) {
+            formatTmp = [NSString stringWithFormat:@"%@ [%@][%@]%@\n",timeStr,prefix,logLevelStr,format];
+        }else {
+            formatTmp = [NSString stringWithFormat:@"%@ [%@]%@\n",timeStr,logLevelStr,format];
+        }
         NSString *message = [[NSString alloc] initWithFormat:formatTmp arguments:args];
-        if (wiLogType & WILogTypeDefault) NSLog(@"%@",message);
-        if (wiLogType & WILogTypeFile) [self writeToFile:message showTime:YES];
+        if (wiLogType & WILogTypeDefault) printf("%s", message.UTF8String);
+        if (wiLogType & WILogTypeFile) [self writeToFile:message];
     }
 }
 
-+(void)writeToFile:(NSString *)logMessage showTime:(BOOL)showTime {//使用NSFileHandle来写入数据
-    dispatch_async([self.class wi_operationQueue], ^{//异步串行队列
-        NSString *logMessageTmp = logMessage;
-        if (showTime) logMessageTmp = [NSString stringWithFormat:@"%@ %@\n", [[self.class dateFormatter] stringFromDate:[NSDate date]],logMessage];
++(void)writeToFile:(NSString *)logMessage {//使用NSFileHandle来写入数据
+    dispatch_async([self wi_operationQueue], ^{//异步串行队列
         NSFileHandle *file = [NSFileHandle fileHandleForUpdatingAtPath:wiLogFilePath];
         [file seekToEndOfFile];
-        [file writeData:[logMessageTmp dataUsingEncoding:NSUTF8StringEncoding]];
+        [file writeData:[logMessage dataUsingEncoding:NSUTF8StringEncoding]];
         [file closeFile];
     });
 }

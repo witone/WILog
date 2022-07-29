@@ -19,14 +19,19 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-    for (int i = 0; i<10; i++) {
-        WILogDebug(@"测试日志打印=%d",i);
+    CFAbsoluteTime startNSLog = CFAbsoluteTimeGetCurrent();
+    for (int i = 0; i<5000; i++) {
+        NSLog(@"测试=%d",i);
     }
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        for (int i = 0; i<10; i++) {
-            WILogDebug(@"测试queue=%d",i);
-        }
-    });
+    CFAbsoluteTime endNSLog = CFAbsoluteTimeGetCurrent();
+    
+    CFAbsoluteTime startPrintf = CFAbsoluteTimeGetCurrent();
+    for (int i = 0; i<5000; i++) {
+        AppLogDebug(@"测试=%d",i);
+    }
+    CFAbsoluteTime endPrintf = CFAbsoluteTimeGetCurrent();
+    
+    NSLog(@"NSLog time: %lf, printf time: %lf", endNSLog - startNSLog, endPrintf - startPrintf);
 }
 
 @end

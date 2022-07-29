@@ -15,13 +15,9 @@ NS_ASSUME_NONNULL_BEGIN
 #define WILogInfo(fmt, ...)             [WILog log:WILogLevelInfo format:(fmt), ##__VA_ARGS__];
 #define WILogDebug(fmt, ...)            [WILog log:WILogLevelDebug format:(fmt), ##__VA_ARGS__];
 
-#define WILogExError(fmt, ...)          [WILog log:WILogLevelError format:(@"[%@][%@]" fmt),NSStringFromClass(self.class),NSStringFromSelector(_cmd), ##__VA_ARGS__];
-#define WILogExInfo(fmt, ...)           [WILog log:WILogLevelInfo format:(@"[%@][%@]" fmt),NSStringFromClass(self.class),NSStringFromSelector(_cmd), ##__VA_ARGS__];
-#define WILogExDebug(fmt, ...)          [WILog log:WILogLevelDebug format:(@"[%@][%@]" fmt),NSStringFromClass(self.class),NSStringFromSelector(_cmd), ##__VA_ARGS__];
-
-#define WILogTagError(tag, fmt, ...)    [WILog log:WILogLevelError format:(@"[%@]" fmt),tag, ##__VA_ARGS__];
-#define WILogTagInfo(tag, fmt, ...)     [WILog log:WILogLevelInfo format:(@"[%@]" fmt),tag, ##__VA_ARGS__];
-#define WILogTagDebug(tag, fmt, ...)    [WILog log:WILogLevelDebug format:(@"[%@]" fmt),tag, ##__VA_ARGS__];
+#define WILogPrefixError(p,fmt, ...)    [WILog log:WILogLevelError prefix:p format:(fmt), ##__VA_ARGS__];
+#define WILogPrefixInfo(p,fmt, ...)     [WILog log:WILogLevelInfo prefix:p format:(fmt), ##__VA_ARGS__];
+#define WILogPrefixDebug(p,fmt, ...)    [WILog log:WILogLevelDebug prefix:p format:(fmt), ##__VA_ARGS__];
 
 typedef NS_ENUM(NSUInteger, WILogLevel) {
     WILogLevelDebug           = 0,//debug
@@ -49,6 +45,7 @@ typedef NS_OPTIONS(NSUInteger, WILogType){
 +(void)exceptionLog:(NSException *)e;
 
 +(void)log:(WILogLevel)level format:(NSString *)format, ... NS_FORMAT_FUNCTION(2,3);
++(void)log:(WILogLevel)level prefix:(NSString *)prefix format:(NSString *)format, ... NS_FORMAT_FUNCTION(3,4);
 
 @end
 

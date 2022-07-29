@@ -7,23 +7,23 @@
 //
 
 #import "WIAppDelegate.h"
-#import <WILog/WILog.h>
 #import <DoraemonKit/DoraemonManager.h>//正式版需删除
 
 @implementation WIAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    [[DoraemonManager shareInstance] install];
     [WILog initLog:WILogLevelDebug withType:WILogTypeFile|WILogTypeDefault withDir:nil];
     [WILog setPrefixName:@"WI"];
-    WILogDebug(@"test=%@",@"2375468658");
-    WILogExError(@"SDKError0-%@",@"测试error");
-    WILogExDebug(@"WILogSDKDebug-%@",@"hahahahha");
-    WILogExInfo(@"测试info");
 
-    WILogTagError(@"测试tag", @"12345-%@",@"ceshi");
-    WILogTagDebug(@"测试tag", @"12345-%@",@"ceshi");
-    WILogTagInfo( @"测试tag", @"12345-%@",@"ceshi");
-    [[DoraemonManager shareInstance] install];
+    AppLogError(@"SDKError0-%@",@"测试error");
+    AppLogDebug(@"WILogSDKDebug-%@",@"hahahahha");
+    AppLogInfo(@"测试info");
+
+    AppLogTagError(@"测试tag", @"12345-%@",@"ceshi");
+    AppLogTagDebug(@"测试tag", @"12345-%@",@"ceshi");
+    AppLogTagInfo( @"测试tag", @"12345-%@",@"ceshi");
+    
     return YES;
 }
 

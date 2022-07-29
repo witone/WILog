@@ -14,3 +14,13 @@
     @import UIKit;
     @import Foundation;
 #endif
+
+#import <WILog/WILog.h>
+
+#define AppLogError(fmt, ...)               WILogError((@"%s" fmt),__func__, ##__VA_ARGS__);
+#define AppLogInfo(fmt, ...)                WILogPrefixInfo(@"App",(@"%s" fmt),__func__, ##__VA_ARGS__);
+#define AppLogDebug(fmt, ...)               WILogDebug((@"%s" fmt),__func__, ##__VA_ARGS__);
+
+#define AppLogTagError(tag, fmt, ...)       WILogError((@"[%@]" fmt),tag, ##__VA_ARGS__);
+#define AppLogTagInfo(tag, fmt, ...)        WILogInfo((@"[%@]" fmt),tag, ##__VA_ARGS__);
+#define AppLogTagDebug(tag, fmt, ...)       WILogDebug((@"[%@]" fmt),tag, ##__VA_ARGS__);
