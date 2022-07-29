@@ -40,6 +40,8 @@ typedef NS_OPTIONS(NSUInteger, WILogType){
 //默认WILogTypeDefault
 +(void)setLogType:(WILogType)logType;
 
++(NSString *)currentLogFilePath;
+
 +(void)initLog:(WILogLevel)level withType:(WILogType)type withDir:(nullable NSString *)logDir;
 
 +(void)exceptionLog:(NSException *)e;

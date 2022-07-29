@@ -15,6 +15,7 @@
     @import Foundation;
 #endif
 
+#import <WIKit/WIKit.h>
 #import <WILog/WILog.h>
 
 #define AppLogError(fmt, ...)               WILogError((@"%s" fmt),__func__, ##__VA_ARGS__);

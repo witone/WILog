@@ -43,6 +43,10 @@ static NSString *wiLogDir = nil;
     return wiLogDefaultDir;
 }
 
++(NSString *)currentLogFilePath {
+    return wiLogFilePath;
+}
+
 +(void)initLog:(WILogLevel)level withType:(WILogType)type withDir:(nullable NSString *)logDir {
     wiLogLevel = level;
     wiLogType = type;

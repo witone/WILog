@@ -1,68 +1,30 @@
 PODS:
-  - AFNetworking (4.0.1):
-    - AFNetworking/NSURLSession (= 4.0.1)
-    - AFNetworking/Reachability (= 4.0.1)
-    - AFNetworking/Security (= 4.0.1)
-    - AFNetworking/Serialization (= 4.0.1)
-    - AFNetworking/UIKit (= 4.0.1)
-  - AFNetworking/NSURLSession (4.0.1):
-    - AFNetworking/Reachability
-    - AFNetworking/Security
-    - AFNetworking/Serialization
-  - AFNetworking/Reachability (4.0.1)
-  - AFNetworking/Security (4.0.1)
-  - AFNetworking/Serialization (4.0.1)
-  - AFNetworking/UIKit (4.0.1):
-    - AFNetworking/NSURLSession
-  - CocoaLumberjack (3.7.4):
-    - CocoaLumberjack/Core (= 3.7.4)
-  - CocoaLumberjack/Core (3.7.4)
-  - DoraemonKit/Core (3.1.2):
-    - AFNetworking
-    - FMDB
-    - GCDWebServer
-    - GCDWebServer/WebDAV
-    - GCDWebServer/WebUploader
-  - DoraemonKit/WithLogger (3.1.2):
-    - CocoaLumberjack
-    - DoraemonKit/Core
-  - FMDB (2.7.5):
-    - FMDB/standard (= 2.7.5)
-  - FMDB/standard (2.7.5)
-  - GCDWebServer (3.5.4):
-    - GCDWebServer/Core (= 3.5.4)
-  - GCDWebServer/Core (3.5.4)
-  - GCDWebServer/WebDAV (3.5.4):
-    - GCDWebServer/Core
-  - GCDWebServer/WebUploader (3.5.4):
-    - GCDWebServer/Core
+  - WIKit (0.2.5):
+    - WIKit/WICore (= 0.2.5)
+    - WIUtility
+  - WIKit/WICore (0.2.5):
+    - WIUtility
   - WILog (1.0.0)
+  - WIUtility (0.1.9)
 
 DEPENDENCIES:
-  - DoraemonKit/Core (~> 3.1.2)
-  - DoraemonKit/WithLogger (~> 3.1.2)
+  - WIKit
   - WILog (from `../`)
 
 SPEC REPOS:
   trunk:
-    - AFNetworking
-    - CocoaLumberjack
-    - DoraemonKit
-    - FMDB
-    - GCDWebServer
+    - WIKit
+    - WIUtility
 
 EXTERNAL SOURCES:
   WILog:
     :path: "../"
 
 SPEC CHECKSUMS:
-  AFNetworking: 7864c38297c79aaca1500c33288e429c3451fdce
-  CocoaLumberjack: 543c79c114dadc3b1aba95641d8738b06b05b646
-  DoraemonKit: 0a040ae24386654e2a2d2c8d029f5ff5837de3c3
-  FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
-  GCDWebServer: 2c156a56c8226e2d5c0c3f208a3621ccffbe3ce4
+  WIKit: 472d236a3fe0796fecebc4c02a5b046ac7072ca1
   WILog: e887b714c06af959819d3725b9eaea458236c738
+  WIUtility: c08b91aa085b8f7568cfb71ff93e0bae9eb34769
 
-PODFILE CHECKSUM: 6a17412b7271d2ec21a7a9e2f1a0a7ab635c5682
+PODFILE CHECKSUM: d84c4d30ae489ed9b2d17750c4662e20e4d1900d
 
 COCOAPODS: 1.11.3
