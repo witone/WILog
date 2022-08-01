@@ -86,6 +86,7 @@ static NSString *wiLogDir = nil;
 }
 
 +(void)log:(WILogLevel)level format:(NSString *)format, ... {
+    if (!format) format = @"";
     va_list args;
     va_start(args, format);
     [self log:level prefix:wiPrefixName format:format vaList:args];
@@ -93,6 +94,7 @@ static NSString *wiLogDir = nil;
 }
 
 +(void)log:(WILogLevel)level prefix:(NSString *)prefix format:(NSString *)format, ... {
+    if (!format) format = @"";
     va_list args;
     va_start(args, format);
     [self log:level prefix:prefix format:format vaList:args];
