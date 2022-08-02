@@ -7,78 +7,115 @@
 
 #import "WILog.h"
 
-// 定义日志级别
-static NSString *wiPrefixName = @"WILog";
-static WILogLevel wiLogLevel = WILogLevelDebug;
-static WILogType wiLogType = WILogTypeDefault;
-
 //log文件路径
 #define wiLogDefaultDir [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingString:@"/log/"];
-static NSString *wiLogFilePath = nil;
-//log目录路径
-static NSString *wiLogDir = nil;
 
 #define WIInnerLog(level, fmt, ...)   [WILog log:level format:(fmt), ##__VA_ARGS__];
 
+NSInteger const wiDefaultLogMaxFileSize      = 1024 * 1024 * 2;      // 2 MB
+
+@interface WILogConfig : NSObject
+
+@property (nonatomic,assign) WILogLevel logLevel;
+@property (nonatomic,assign) WILogType logType;
+
+@property (nonatomic,strong) NSString *prefixName;
+@property (nonatomic,strong) NSString *logDirectory;
+@property (nonatomic,assign) NSInteger fileMaxSize;
+
++(WILogConfig *)defaultConfig;
+
+@end
+
+@implementation WILogConfig
+
++ (instancetype)defaultConfig {
+    static WILogConfig *_wiLogDefaultConfig = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _wiLogDefaultConfig = [[self alloc] init];
+    });
+    return _wiLogDefaultConfig;
+}
+
+-(instancetype)init {
+    if (self  = [super init]) {
+        self.logType = WILogTypeDefault;
+        self.logLevel = WILogLevelDebug;
+        self.logDirectory = wiLogDefaultDir;
+        self.prefixName = @"WILog";
+        self.fileMaxSize = wiDefaultLogMaxFileSize;
+    }
+    return self;
+}
+
+-(void)setLogDirectory:(NSString *)logDirectory {
+    if (![_logDirectory isEqualToString:logDirectory]) {
+        _logDirectory = logDirectory;
+    }
+    if (![[NSFileManager defaultManager] fileExistsAtPath:logDirectory]) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:logDirectory withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+}
+
+@end
+
+@interface WILog () {
+    NSFileHandle *_currentLogFileHandle;
+}
+
+@property (nonatomic, copy) NSString  *currentLogFileName;
+@property (nonatomic, copy) NSString  *nextLogFileName;
+
+@end
+
 @implementation WILog
 
++ (instancetype)shareInstance {
+    static WILog *_wiLogInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _wiLogInstance = [[self alloc] init];
+    });
+    return _wiLogInstance;
+}
+
+-(instancetype)init {
+    if (self  = [super init]) {
+        if ([[WILogConfig defaultConfig] logType] & WILogTypeFile) [self wi_writeToFile:@"\n\n\n"];
+    }
+    return self;
+}
+
 +(void)setPrefixName:(NSString *)prefixName {
-    wiPrefixName = prefixName;
+    [[WILogConfig defaultConfig] setPrefixName:prefixName];
 }
 
 +(void)setLogLevel:(WILogLevel)logLevel {
-    wiLogLevel = logLevel;
+    [[WILogConfig defaultConfig] setLogLevel:logLevel];
 }
 
 +(void)setLogType:(WILogType)logType {
-    wiLogType = logType;
+    [[WILogConfig defaultConfig] setLogType:logType];
+}
+
++(void)setFileMaxSize:(NSInteger)fileMaxSize {
+    [[WILogConfig defaultConfig] setFileMaxSize:fileMaxSize];
 }
 
 +(void)setLogDirectory:(NSString *)logDirectory {
-    wiLogDir = logDirectory;
+    [[WILogConfig defaultConfig] setLogDirectory:logDirectory];
 }
 
 +(NSString *)logDirectory {
-    if (wiLogDir && wiLogDir.length>0) return wiLogDir;
+    NSString *logDir = [[WILogConfig defaultConfig] logDirectory];
+    if (logDir && logDir.length>0) return logDir;
     return wiLogDefaultDir;
 }
 
 +(NSString *)currentLogFilePath {
-    return wiLogFilePath;
-}
-
-+(void)initLog:(WILogLevel)level withType:(WILogType)type withDir:(nullable NSString *)logDir {
-    wiLogLevel = level;
-    wiLogType = type;
-
-    
-    if (logDir && logDir.length>0) {
-        wiLogDir = logDir;
-    }else {
-        wiLogDir = wiLogDefaultDir;
-    }
-    
-    if (!wiLogFilePath) {
-        //创建log文件夹
-        if (![[NSFileManager defaultManager] fileExistsAtPath:wiLogDir]) {
-            [[NSFileManager defaultManager] createDirectoryAtPath:wiLogDir withIntermediateDirectories:YES attributes:nil error:nil];
-        }
-
-        NSString *fileName = [NSString stringWithFormat:@"wiLog.log"];
-        NSString *filePath = [wiLogDir stringByAppendingPathComponent:fileName];
-        
-        wiLogFilePath = filePath;
-#if DEBUG
-        NSLog(@"LogPath: %@", wiLogFilePath);
-#endif
-        //创建log文件
-        if(![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-            BOOL result = [[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil];
-            if (!result) NSLog(@"创建日志文件失败");
-        }else {
-            if (wiLogType & WILogTypeFile) [self writeToFile:@"\n\n\n"];
-        }
-    }
+    NSString *filePath = [NSString stringWithFormat:@"%@%@", [[WILogConfig defaultConfig] logDirectory], [self.shareInstance currentLogFileName]];
+    return filePath;
 }
 
 +(void)exceptionLog:(NSException *)e {
@@ -86,26 +123,26 @@ static NSString *wiLogDir = nil;
 }
 
 +(void)log:(WILogLevel)level format:(NSString *)format, ... {
-    if (level >= wiLogLevel) {
+    if (level >= [[WILogConfig defaultConfig] logLevel]) {
         if (!format) format = @"(null)";
         va_list args;
         va_start(args, format);
-        [self log:level prefix:wiPrefixName format:format vaList:args];
+        [[self shareInstance] wi_log:level prefix:[[WILogConfig defaultConfig] prefixName] format:format vaList:args];
         va_end(args);
     }
 }
 
 +(void)log:(WILogLevel)level prefix:(NSString *)prefix format:(NSString *)format, ... {
-    if (level >= wiLogLevel) {
+    if (level >= [[WILogConfig defaultConfig] logLevel]) {
         if (!format) format = @"(null)";
         va_list args;
         va_start(args, format);
-        [self log:level prefix:prefix format:format vaList:args];
+        [[self shareInstance] wi_log:level prefix:prefix format:format vaList:args];
         va_end(args);
     }
 }
 
-+ (void)log:(WILogLevel)level prefix:(NSString *)prefix format:(NSString *)format vaList:(va_list)args {
+-(void)wi_log:(WILogLevel)level prefix:(NSString *)prefix format:(NSString *)format vaList:(va_list)args {
     NSString *logLevelStr = @"";
     switch (level) {
         case WILogLevelDebug: logLevelStr = @"debug";  break;
@@ -114,24 +151,48 @@ static NSString *wiLogDir = nil;
         default: logLevelStr = @"debug";  break;
     }
     NSString *formatTmp;
-    NSString *timeStr = [[self dateFormatter] stringFromDate:[NSDate date]];
+    NSString *timeStr = [[self.class dateFormatter] stringFromDate:[NSDate date]];
     if (prefix && prefix.length) {
         formatTmp = [NSString stringWithFormat:@"%@ [%@][%@]%@\n",timeStr,prefix,logLevelStr,format];
     }else {
         formatTmp = [NSString stringWithFormat:@"%@ [%@]%@\n",timeStr,logLevelStr,format];
     }
     NSString *message = [[NSString alloc] initWithFormat:formatTmp arguments:args];
-    if (wiLogType & WILogTypeDefault) printf("%s", message.UTF8String);
-    if (wiLogType & WILogTypeFile) [self writeToFile:message];
+    if ([[WILogConfig defaultConfig] logType] & WILogTypeDefault) printf("%s", message.UTF8String);
+    if ([[WILogConfig defaultConfig] logType] & WILogTypeFile) [self wi_writeToFile:message];
 }
 
-+(void)writeToFile:(NSString *)logMessage {//使用NSFileHandle来写入数据
-    dispatch_async([self wi_operationQueue], ^{//异步串行队列
-        NSFileHandle *file = [NSFileHandle fileHandleForUpdatingAtPath:wiLogFilePath];
-        [file seekToEndOfFile];
-        [file writeData:[logMessage dataUsingEncoding:NSUTF8StringEncoding]];
-        [file closeFile];
+-(void)wi_writeToFile:(NSString *)logMessage {//使用NSFileHandle来写入数据
+    dispatch_async([self.class wi_operationQueue], ^{//异步串行队列
+        if (self->_currentLogFileHandle == nil) {
+            self.currentLogFileName = self.nextLogFileName;
+            NSString *filePath = [NSString stringWithFormat:@"%@%@", [[WILogConfig defaultConfig] logDirectory], self.currentLogFileName];
+            [[NSData new] writeToFile:filePath options:NSDataWritingAtomic error:nil];
+            self->_currentLogFileHandle = [NSFileHandle fileHandleForUpdatingAtPath:filePath];
+        }
+        //[self->_currentLogFileHandle seekToEndOfFile];
+        [self->_currentLogFileHandle writeData:[logMessage dataUsingEncoding:NSUTF8StringEncoding]];
+        unsigned long long fileSize = [self->_currentLogFileHandle offsetInFile];
+        if ([[WILogConfig defaultConfig] fileMaxSize]>0 && fileSize > [[WILogConfig defaultConfig] fileMaxSize]) {
+            [self->_currentLogFileHandle closeFile];
+            self->_currentLogFileHandle = nil;
+        }
     });
+}
+
+- (NSString *)nextLogFileName {
+    NSString *timeStr = [[self.class dateFormatter] stringFromDate:[NSDate date]];
+
+    _nextLogFileName = [NSString stringWithFormat:@"%@.log", timeStr];
+    static int index = 0;
+
+    if ([self.currentLogFileName isEqualToString:_nextLogFileName]) {
+        _nextLogFileName = [NSString stringWithFormat:@"%@_%02d.log", timeStr, ++index];
+    } else {
+        index = 0;
+    }
+
+    return _nextLogFileName;
 }
 
 +(dispatch_queue_t)wi_operationQueue {

@@ -32,7 +32,7 @@
         [btn.titleLabel setFont:[UIFont systemFontOfSize:16]];
         [btn setTitle:@"打印日志" forState:UIControlStateNormal];
         [btn setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
-        [btn addTarget:self action:@selector(testPrintLog) forControlEvents:UIControlEventTouchUpInside];
+        [btn addTarget:self action:@selector(testLog) forControlEvents:UIControlEventTouchUpInside];
         [self.view addSubview:btn];
     }
     

@@ -39,10 +39,10 @@ typedef NS_OPTIONS(NSUInteger, WILogType){
 +(void)setLogLevel:(WILogLevel)logLevel;
 //默认WILogTypeDefault
 +(void)setLogType:(WILogType)logType;
++(void)setFileMaxSize:(NSInteger)fileMaxSize;
++(void)setLogDirectory:(NSString *)logDirectory;
 
 +(NSString *)currentLogFilePath;
-
-+(void)initLog:(WILogLevel)level withType:(WILogType)type withDir:(nullable NSString *)logDir;
 
 +(void)exceptionLog:(NSException *)e;
 

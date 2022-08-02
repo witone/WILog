@@ -11,7 +11,7 @@
 @implementation WIAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    [WILog initLog:WILogLevelDebug withType:WILogTypeFile|WILogTypeDefault withDir:nil];
+    [WILog setLogType:WILogTypeFile|WILogTypeDefault];
     [WILog setPrefixName:@"WI"];
 
     if([[NSFileManager defaultManager] fileExistsAtPath:WILog.currentLogFilePath]) {
