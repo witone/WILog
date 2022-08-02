@@ -86,41 +86,43 @@ static NSString *wiLogDir = nil;
 }
 
 +(void)log:(WILogLevel)level format:(NSString *)format, ... {
-    if (!format) format = @"";
-    va_list args;
-    va_start(args, format);
-    [self log:level prefix:wiPrefixName format:format vaList:args];
-    va_end(args);
+    if (level >= wiLogLevel) {
+        if (!format) format = @"";
+        va_list args;
+        va_start(args, format);
+        [self log:level prefix:wiPrefixName format:format vaList:args];
+        va_end(args);
+    }
 }
 
 +(void)log:(WILogLevel)level prefix:(NSString *)prefix format:(NSString *)format, ... {
-    if (!format) format = @"";
-    va_list args;
-    va_start(args, format);
-    [self log:level prefix:prefix format:format vaList:args];
-    va_end(args);
+    if (level >= wiLogLevel) {
+        if (!format) format = @"";
+        va_list args;
+        va_start(args, format);
+        [self log:level prefix:prefix format:format vaList:args];
+        va_end(args);
+    }
 }
 
 + (void)log:(WILogLevel)level prefix:(NSString *)prefix format:(NSString *)format vaList:(va_list)args {
-    if (level >= wiLogLevel) {
-        NSString *logLevelStr = @"";
-        switch (level) {
-            case WILogLevelDebug: logLevelStr = @"debug";  break;
-            case WILogLevelInfo:  logLevelStr = @"info";   break;
-            case WILogLevelError: logLevelStr = @"error";  break;
-            default: logLevelStr = @"debug";  break;
-        }
-        NSString *formatTmp;
-        NSString *timeStr = [[self dateFormatter] stringFromDate:[NSDate date]];
-        if (prefix && prefix.length) {
-            formatTmp = [NSString stringWithFormat:@"%@ [%@][%@]%@\n",timeStr,prefix,logLevelStr,format];
-        }else {
-            formatTmp = [NSString stringWithFormat:@"%@ [%@]%@\n",timeStr,logLevelStr,format];
-        }
-        NSString *message = [[NSString alloc] initWithFormat:formatTmp arguments:args];
-        if (wiLogType & WILogTypeDefault) printf("%s", message.UTF8String);
-        if (wiLogType & WILogTypeFile) [self writeToFile:message];
+    NSString *logLevelStr = @"";
+    switch (level) {
+        case WILogLevelDebug: logLevelStr = @"debug";  break;
+        case WILogLevelInfo:  logLevelStr = @"info";   break;
+        case WILogLevelError: logLevelStr = @"error";  break;
+        default: logLevelStr = @"debug";  break;
     }
+    NSString *formatTmp;
+    NSString *timeStr = [[self dateFormatter] stringFromDate:[NSDate date]];
+    if (prefix && prefix.length) {
+        formatTmp = [NSString stringWithFormat:@"%@ [%@][%@]%@\n",timeStr,prefix,logLevelStr,format];
+    }else {
+        formatTmp = [NSString stringWithFormat:@"%@ [%@]%@\n",timeStr,logLevelStr,format];
+    }
+    NSString *message = [[NSString alloc] initWithFormat:formatTmp arguments:args];
+    if (wiLogType & WILogTypeDefault) printf("%s", message.UTF8String);
+    if (wiLogType & WILogTypeFile) [self writeToFile:message];
 }
 
 +(void)writeToFile:(NSString *)logMessage {//使用NSFileHandle来写入数据
